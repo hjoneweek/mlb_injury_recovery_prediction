@@ -61,7 +61,9 @@ combined_injury_records %>%
 combined_injury_records %>%
   mutate(pos = fct_collapse(
     pos,
-    P = c('SP', 'RP', 'RP/SP', 'SP/RP'),
+    SP = 'SP',  
+    RP = 'RP',
+    SPRP = c('RP/SP', 'SP/RP'),
     C = 'C',
     INF = c('1B', '2B', '3B', '1B/3B', '3B/1B', 'SS'),
     OF = c('OF', 'Of'),
