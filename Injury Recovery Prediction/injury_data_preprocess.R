@@ -58,6 +58,7 @@ combined_injury_records %>%
   filter(days_injured > 0) %>%
   select(name, team, pos, date_injury, injury, date_il_retro, date_return, days_injured)-> combined_injury_records
 
+# Categorize the positions again by combining positions
 combined_injury_records %>%
   mutate(pos = fct_collapse(
     pos,
@@ -73,13 +74,7 @@ combined_injury_records %>%
 
 fct_count(combined_injury_records$pos)
 
-combined_injury_records %>%
-  mutate(injury_category = case_when(days_injured < 30 ~ 'mild',
-                                         days_injured < 100 ~ 'moderate',
-                                         days_injured < 180 ~ 'severe',
-                                         TRUE ~ 'season-out')) -> combined_injury_records
-
-
+# Joining MLB player data to injury data to find the age at the time of injury
 load_data('Data/People.csv') -> players
 
 players %>%
@@ -89,8 +84,6 @@ players %>%
   mutate(debut = ymd(debut),
          finalGame = ymd(finalGame),
          date_of_birth = ymd(paste0(birthYear, "-", birthMonth, "-", birthDay))) -> players
-
-players %>% glimpse()
 
 players %>%
   select(nameFirst, nameLast, nameGiven, date_of_birth, debut, finalGame) -> players_important_dates
@@ -130,19 +123,7 @@ combined_injury_records %>%
                                 trunc(time_length(interval(date_of_birth, date_injury), 'year')),
                                 trunc(time_length(interval(date_of_birth, date_il_retro), 'year')))) -> combined_injury_records
 
+# Export csv
 combined_injury_records %>%
   write.csv('./data/combined_injury_records.csv', row.names = FALSE)
-
-combined_injury_records %>%
-  select(injury) %>%
-  unique() -> injuries
-
-load_data('./Data/combined_injury_records_categorized.csv') -> categorized_injury_records
-
-categorized_injury_records %>%
-  select(injury, injury_type, body_part) -> categorized_injury_records
-
-combined_injury_records %>%
-  group_by(body_part, injury_type) %>%
-  ggplot(aes(x))
          
