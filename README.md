@@ -51,3 +51,41 @@ A dedicated logic was built to identify if a player is suffering from a recurrin
 * **Logic:** For every player, injuries are sorted chronologically.
 * **Flagging:** The first instance of an injury to a specific body part is labeled `0`. Every subsequent injury to that same body part for that player is labeled `1`.
 * **Predictive Value:** This allows the model to distinguish between a "Fresh" injury and a "Chronic/Relapse" injury, which often requires a more conservative (longer) recovery timeline.
+
+## 5. Model Development
+
+### 5.1 Model Selection: CatBoost
+The **CatBoost** library was chosen as the primary algorithm for this pipeline. The decision was driven by the specific nature of MLB injury data, which contains a **high volume of categorical columns** (Position, Medical Cluster, Body Part). 
+* CatBoost's proprietary handling of categorical features (Target Statistics) allows it to process high-cardinality data without the need for manual One-Hot Encoding, which often degrades performance in other tree-based models.
+
+### 5.2 Multi-Classification Approach
+The model is configured for **Multi-Classification**. Rather than just predicting a specific day count, the model classifies injuries into specific severity tiers (e.g., *Mild, Moderate, Severe, Season-Ending*). This provides a more actionable "Risk Profile" for players than a single numerical estimate.
+
+### 5.3 Training and Validation Split
+To prevent data leakage and ensure real-world applicability, the data is split **chronologically**:
+* **Training Set:** Historical data (e.g., 2020–2024) is used to teach the model patterns.
+* **Test Set:** The most recent injuries (e.g., 2025) are used for evaluation.
+This ensures the model is "predicting the future based on the past," mirroring how it would be used by an MLB training staff during a live season.
+
+### 5.4 Hyperparameter Tuning & Optimization
+
+To achieve the highest predictive accuracy and prevent the model from simply memorizing historical data (overfitting), the following tuning strategy was implemented:
+
+#### 5.4.1 Determining the Learning Rate ($\eta$)
+The **Learning Rate** (step size) was determined through an iterative search to balance training speed and model stability. Learning rate 0.01 was chosen as it was most optimal. 
+
+#### 5.4.2 Determining the Number of Iterations & Model Shrinkage
+Rather than picking an arbitrary number of iterations (e.g., 1000), the optimal training duration was determined using **Automatic Model Shrinkage**:
+* **Validation Monitoring:** During the training process, the model evaluates its performance on a validation set at the end of every epoch.
+* **Optimal Iteration Detection:** The algorithm identifies the exact point (the **"Best Iteration"**) where the loss on the validation set is at its absolute minimum. 
+* **Automatic Shrinkage:** CatBoost does not simply stop; it **shrinks the model back** to the "Best Iteration." 
+* **Reasoning:** This ensures that any "over-learning" or noise captured in the final, declining rounds of training is discarded. The final model used for prediction is the one that achieved the peak generalized accuracy.
+
+## 6. Evaluation Metric
+
+**Accuracy** was chosen as the primary metric to determine how well the model predicted the correct **Severity Tier** (e.g., *Mild, Moderate, Severe, Season-Ending*). 
+
+* **Calculation:** This represents the percentage of total predictions where the model’s predicted severity class matched the actual recorded recovery window.
+* **Significance:** In a multi-classification context, high accuracy indicates that the model has successfully learned the non-linear boundaries between different injury outcomes. It demonstrates the model's ability to distinguish between physiologically distinct events—such as a simple muscle strain versus a surgical-level tear—despite them often sharing similar keywords in raw text.
+
+Would you like me to provide the **Python code** to generate a **Confusion Matrix** so you can visualize exactly where those accuracy hits and misses occurred?
