@@ -24,7 +24,7 @@
 ---
 
 ## 1. Project Overview
-This project aims to bridge the "Clinical vs. Semantic" gap in sports medicine data. By transforming raw, unstructured injury reports into clinically meaningful features, we develop a Machine Learning model capable of predicting the number of days a player will spend on the Injured List (IL). This supports front-office decision-making, roster management, and player valuation.
+This project aims to bridge the "Clinical vs. Semantic" gap in sports medicine data. By transforming raw, unstructured injury reports into clinically meaningful features, I developed a Machine Learning model capable of predicting the number of days a player will spend on the Injured List (IL). This supports front-office decision-making, roster management, and player valuation.
 
 ## 2. Data Source
 The primary dataset is curated from the **FanGraphs RosterResource Injury Report**.
@@ -41,15 +41,15 @@ Raw date formats in sports reporting are often inconsistent. All date-related co
 MLB rosters use various acronyms for positions. To reduce noise and group players by similar physical demands, inconsistent position data is mapped into eight primary categories:
 * **Pitchers:** Starting Pitcher (**SP**), Relief Pitcher (**RP**), and Swingman/Hybrid (**SPRP**).
 * **Position Players:** Infielder (**INF**), Outfielder (**OF**), Catcher (**C**), and Designated Hitter (**DH**).
-* **Versatility:** Utility Player (**U**).
+* **Utility Players:** Utility Player (**U**).
 
 ### 3.3 Handling Missing & Undisclosed Data
-In professional sports, teams occasionally list injuries as "Undisclosed" or leave return dates blank for ongoing injuries. 
-* Records with **missing values** in critical fields (`date_injury`, `date_return`) are dropped.
+In professional sports, teams occasionally list injuries as "Undisclosed" or leave exact injury dates blank for ongoing injuries. 
+* Records with **missing values** in critical fields (`date_injury`) are dropped.
 * Injuries listed as **"Undisclosed"** or **"Personal"** are removed, as they lack the physiological signal required for a medical recovery model.
 
 ### 3.4 Outlier Detection and Removal
-To prevent the model from being skewed by "freak occurrences" (e.g., a simple strain that took 200 days due to unforeseen complications), we apply a grouped outlier filter:
+To prevent the model from being skewed (e.g., a simple strain that took 200 days due to unforeseen complications), we apply a grouped outlier filter:
 * **Method:** Interquartile Range (**IQR**) Outliers.
 * **Logic:** Outliers are calculated **within** each specific *Injury Type* and *Location* grouping.
 * **Action:** Data points falling below $Q1 - 1.5 \times IQR$ or above $Q3 + 1.5 \times IQR$ are dropped to ensure the model learns the "typical" recovery curve for a specific diagnosis.
@@ -85,7 +85,7 @@ The **CatBoost** library was chosen as the primary algorithm for this pipeline. 
 The model is configured for **Multi-Classification**. Rather than just predicting a specific day count, the model classifies injuries into specific severity tiers (e.g., *Mild, Moderate, Severe, Season-Ending*). This provides a more actionable "Risk Profile" for players than a single numerical estimate.
 
 ### 5.3 Training and Validation Split
-To prevent data leakage and ensure real-world applicability, the data is split **chronologically**:
+To ensure real-world applicability, the data is split **chronologically**:
 * **Training Set:** Historical data (e.g., 2020–2024) is used to teach the model patterns.
 * **Test Set:** The most recent injuries (e.g., 2025) are used for evaluation.
 This ensures the model is "predicting the future based on the past," mirroring how it would be used by an MLB training staff during a live season.
