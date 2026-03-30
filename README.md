@@ -1,5 +1,28 @@
 # MLB Injury Recovery Prediction Pipeline
 
+## Table of Contents
+- [1. Project Overview](#1-project-overview)
+- [2. Data Source](#2-data-source)
+- [3. Data Preprocessing](#3-data-preprocessing)
+  - [3.1 Date Standardization](#31-date-standardization)
+  - [3.2 Position Categorization](#32-position-categorization)
+  - [3.3 Handling Missing & Undisclosed Data](#33-handling-missing--undisclosed-data)
+  - [3.4 Outlier Detection and Removal](#34-outlier-detection-and-removal)
+- [4. Feature Engineering](#4-feature-engineering)
+  - [4.1 Calculation of Precise Age at Injury](#41-calculation-of-precise-age-at-injury)
+  - [4.2 Anatomy & Pathophysiology Extraction](#42-anatomy--pathophysiology-extraction)
+  - [4.3 Relapse Detection (Recurring Injuries)](#43-relapse-detection-recurring-injuries)
+- [5. Model Development](#5-model-development)
+  - [5.1 Model Selection: CatBoost](#51-model-selection-catboost)
+  - [5.2 Multi-Classification Approach](#52-multi-classification-approach)
+  - [5.3 Training and Validation Split](#53-training-and-validation-split)
+  - [5.4 Hyperparameter Tuning & Optimization](#54-hyperparameter-tuning--optimization)
+    - [5.4.1 Determining the Learning Rate](#541-determining-the-learning-rate)
+    - [5.4.2 Determining the Number of Iterations & Model Shrinkage](#542-determining-the-number-of-iterations--model-shrinkage)
+- [6. Evaluation Metric](#6-evaluation-metric)
+
+---
+
 ## 1. Project Overview
 This project aims to bridge the "Clinical vs. Semantic" gap in sports medicine data. By transforming raw, unstructured injury reports into clinically meaningful features, we develop a Machine Learning model capable of predicting the number of days a player will spend on the Injured List (IL). This supports front-office decision-making, roster management, and player valuation.
 
@@ -38,7 +61,7 @@ To provide the model with high-signal predictors, the raw data was transformed i
 #### 4.1 Calculation of Precise Age at Injury
 Age is a critical factor in biological recovery times. To move beyond simple birth years, a precise age was calculated using a relational data join:
 * **Data Integration:** The primary injury table was joined with a supplemental player metadata dataset using `playerid` as the primary key.
-* **Feature Extraction:** From this join, the player’s exact `Date of Birth` was retrieved.
+* **Feature Extraction:** From this join, the player's exact `Date of Birth` was retrieved.
 * **Calculation:** The `Age at Injury` was derived by subtracting the `Date of Birth` from the `Date of Injury`. This provides a continuous numerical feature (e.g., 24.3 years) that allows the model to account for subtle physiological differences in aging athletes.
 
 #### 4.2 Anatomy & Pathophysiology Extraction
@@ -85,7 +108,5 @@ Rather than picking an arbitrary number of iterations (e.g., 1000), the optimal 
 
 **Accuracy** was chosen as the primary metric to determine how well the model predicted the correct **Severity Tier** (e.g., *Mild, Moderate, Severe, Season-Ending*). 
 
-* **Calculation:** This represents the percentage of total predictions where the model’s predicted severity class matched the actual recorded recovery window.
+* **Calculation:** This represents the percentage of total predictions where the model's predicted severity class matched the actual recorded recovery window.
 * **Significance:** In a multi-classification context, high accuracy indicates that the model has successfully learned the non-linear boundaries between different injury outcomes. It demonstrates the model's ability to distinguish between physiologically distinct events—such as a simple muscle strain versus a surgical-level tear—despite them often sharing similar keywords in raw text.
-
-Would you like me to provide the **Python code** to generate a **Confusion Matrix** so you can visualize exactly where those accuracy hits and misses occurred?
